@@ -19,6 +19,11 @@ public class Board : MonoBehaviour
     public List<GameObject> enable_Cells = new List<GameObject>();      // 사용중인 셀
     public List<GameObject> disable_Cells = new List<GameObject>();     // 미사용중인 셀
 
+    public Vector3 empty_Position;                                      // 빈 공간 위치
+    public List<GameObject> down_Cells = new List<GameObject>();        // 빈 공간에 내려오고 있는 셀
+
+    bool isEmpty = false;
+
 
     void Awake()
     {
@@ -31,6 +36,28 @@ public class Board : MonoBehaviour
     void Start()
     {
         InstantiateCellBoard();
+    }
+
+    void FixedUpdate()
+    {
+        if (isEmpty)
+        {
+            // 사용 중인 셀이 있으면 한 칸씩 내려옴
+            for (int i = 0; i < enable_Cells.Count; i++)
+            {
+                if (enable_Cells[i].transform.position.y > empty_Position.y && enable_Cells[i].transform.position.x == empty_Position.x)
+                {
+                    enable_Cells[i].transform.position = Vector2.MoveTowards(enable_Cells[i].transform.position, new Vector2(empty_Position.x, cell_CreateY), -2.5f * Time.deltaTime);
+
+                    // 셀이 다 내려왔다면 끝내기
+                    if (enable_Cells[i].transform.position.y == empty_Position.y && enable_Cells[i].transform.position.x == empty_Position.x)
+                    {
+                        isEmpty = false;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     // 보드 생성
@@ -51,8 +78,12 @@ public class Board : MonoBehaviour
 
     
     // 빈 공간 채우기
-    public void FillEmptyPlace(GameObject disappear_Cell)
+    public void FillEmptyBoard(GameObject disappear_Cell)
     {
+        isEmpty = true;
+        empty_Position = disappear_Cell.transform.position;
+        /*
+        // 사용 중인 셀이 있으면 한 칸씩 내려옴
         for (int i = 0; i < enable_Cells.Count; i++)
         {
             if (enable_Cells[i].transform.position.y > disappear_Cell.transform.position.y && enable_Cells[i].transform.position.x == disappear_Cell.transform.position.x)
@@ -61,17 +92,26 @@ public class Board : MonoBehaviour
             }
         }
 
+        // 미사용중인 셀이 있으면 맨 윗부분을 채움
         if (disable_Cells.Count != 0)
         {
             GameObject show_Cell = disable_Cells[0];
             show_Cell.SetActive(true);
             show_Cell.transform.position = new Vector2(disappear_Cell.transform.position.x, cell_CreateY);
         }
+        // 미사용중인 셀이 없으면 셀을 생성해서 맨 윗부분을 채움
         else
         {
             GameObject instantiate_Cell = Instantiate(cell);
             instantiate_Cell.transform.position = new Vector2(disappear_Cell.transform.position.x, cell_CreateY);
         }
+        */
         disappear_Cell.SetActive(false);
+    }
+
+    // 셀 아래로 이동
+    void FillEmptyCell(GameObject own_Cell, Vector3 empty_Position)
+    {
+        own_Cell.transform.position = Vector2.MoveTowards(own_Cell.transform.position, new Vector2(empty_Position.x, cell_CreateY), 2.5f * Time.deltaTime);
     }
 }

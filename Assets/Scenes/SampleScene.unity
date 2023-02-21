@@ -176,7 +176,6 @@ GameObject:
   m_Component:
   - component: {fileID: 423120304}
   - component: {fileID: 423120303}
-  - component: {fileID: 423120305}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -199,10 +198,14 @@ MonoBehaviour:
   cell: {fileID: 7589572476808643287, guid: 73bf3819a20d480439b6af15fdc6c70c, type: 3}
   cell_CreateX: -1.5
   cell_CreateY: 0
-  cell_nextX: 0
-  cell_nextY: 0
+  cell_NextX: 0
+  cell_NextY: 0
   board_X: 7
   board_Y: 7
+  enable_Cells: []
+  disable_Cells: []
+  empty_Position: {x: 0, y: 0, z: 0}
+  down_Cells: []
 --- !u!4 &423120304
 Transform:
   m_ObjectHideFlags: 0
@@ -217,18 +220,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &423120305
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 423120302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c6affbed0f4e7e44b4a12dc5661fef7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -311,4 +302,47 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &526150366
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 526150368}
+  - component: {fileID: 526150367}
+  m_Layer: 0
+  m_Name: EventManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &526150367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 526150366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: baba4c7ad214d814db359e6260a416e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &526150368
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 526150366}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.38278797, y: -0.6957264, z: -11.079962}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
