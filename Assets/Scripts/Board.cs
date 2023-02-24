@@ -19,11 +19,10 @@ public class Board : MonoBehaviour
     public List<GameObject> enable_Cells = new List<GameObject>();      // 사용중인 셀
     public List<GameObject> disable_Cells = new List<GameObject>();     // 미사용중인 셀
 
-    public Vector3 empty_Position;                                      // 빈 공간 위치
+    public List<Vector3> empty_Positions = new List<Vector3>();         // 빈 공간 위치
     public List<GameObject> down_Cells = new List<GameObject>();        // 빈 공간에 내려오고 있는 셀
 
-    bool isEmpty = false;
-
+    Dictionary<GameObject, Vector3> target_Positions = new Dictionary<GameObject, Vector3>();       // 내려올 셀들의 목표 위치
 
     void Awake()
     {
@@ -38,25 +37,14 @@ public class Board : MonoBehaviour
         InstantiateCellBoard();
     }
 
+
     void FixedUpdate()
     {
-        if (isEmpty)
+        // 비어있는 공간이 있다면
+        if (empty_Positions.Count != 0)
         {
-            // 사용 중인 셀이 있으면 한 칸씩 내려옴
-            for (int i = 0; i < enable_Cells.Count; i++)
-            {
-                if (enable_Cells[i].transform.position.y > empty_Position.y && enable_Cells[i].transform.position.x == empty_Position.x)
-                {
-                    enable_Cells[i].transform.position = Vector2.MoveTowards(enable_Cells[i].transform.position, new Vector2(empty_Position.x, cell_CreateY), -2.5f * Time.deltaTime);
-
-                    // 셀이 다 내려왔다면 끝내기
-                    if (enable_Cells[i].transform.position.y == empty_Position.y && enable_Cells[i].transform.position.x == empty_Position.x)
-                    {
-                        isEmpty = false;
-                        break;
-                    }
-                }
-            }
+            Debug.Log("비어있는 공간 있음");
+            FallingCell();
         }
     }
 
@@ -77,41 +65,111 @@ public class Board : MonoBehaviour
     }
 
     
-    // 빈 공간 채우기
+    // 빈 공간 채우기 (추후 이름 변경 필요, 코드도 2개로 나눠야할 듯)
     public void FillEmptyBoard(GameObject disappear_Cell)
     {
-        isEmpty = true;
-        empty_Position = disappear_Cell.transform.position;
-        /*
-        // 사용 중인 셀이 있으면 한 칸씩 내려옴
-        for (int i = 0; i < enable_Cells.Count; i++)
-        {
-            if (enable_Cells[i].transform.position.y > disappear_Cell.transform.position.y && enable_Cells[i].transform.position.x == disappear_Cell.transform.position.x)
-            {
-                enable_Cells[i].transform.position = new Vector2(enable_Cells[i].transform.position.x, enable_Cells[i].transform.position.y - 0.5f);
-            }
-        }
-
         // 미사용중인 셀이 있으면 맨 윗부분을 채움
         if (disable_Cells.Count != 0)
         {
             GameObject show_Cell = disable_Cells[0];
             show_Cell.SetActive(true);
-            show_Cell.transform.position = new Vector2(disappear_Cell.transform.position.x, cell_CreateY);
+            show_Cell.transform.position = new Vector2(disappear_Cell.transform.position.x, cell_CreateY + 0.5f * empty_Positions.Count);
         }
         // 미사용중인 셀이 없으면 셀을 생성해서 맨 윗부분을 채움
         else
         {
             GameObject instantiate_Cell = Instantiate(cell);
-            instantiate_Cell.transform.position = new Vector2(disappear_Cell.transform.position.x, cell_CreateY);
+            instantiate_Cell.transform.position = new Vector2(disappear_Cell.transform.position.x, cell_CreateY + 0.5f * empty_Positions.Count);
+        }
+        
+        
+        disappear_Cell.SetActive(false);
+        empty_Positions.Add(disappear_Cell.transform.position);
+
+        // -------------------------------------------------------------------------------
+        /*
+        // 없어진 셀 위에 위치한 셀들만 자신 위치의 바로 아래 셀로 위치를 잡고 딕셔너리에 저장
+        for (int i = 0; i < empty_Positions.Count; i++)
+        {
+            for (int j = 0; j < enable_Cells.Count; j++)
+            {
+                if (enable_Cells[j].transform.position.y > empty_Positions[i].y && enable_Cells[j].transform.position.x == empty_Positions[i].x)
+                {
+                    Debug.Log("1");
+                    // 내려올 셀 목록에 없다면 추가
+                    if (!target_Positions.ContainsKey(enable_Cells[j]))
+                    {
+                        Debug.Log("생성");
+                        target_Positions.Add(enable_Cells[j], new Vector3(enable_Cells[j].transform.position.x, enable_Cells[j].transform.position.y - 0.5f * empty_Positions.Count));
+                    }
+                    // 내려올 셀 목록에 있다면 변경
+                    else
+                    {
+                        target_Positions[enable_Cells[j]] = new Vector3(enable_Cells[j].transform.position.x, enable_Cells[j].transform.position.y - 0.5f * empty_Positions.Count);
+                    }
+                }
+            }
         }
         */
-        disappear_Cell.SetActive(false);
+
+        SetFallingCell(disappear_Cell);
+    }
+
+    // 없어진 셀 위에 위치한 셀들만 자신 위치의 바로 아래 셀로 위치를 잡고 딕셔너리에 저장
+    void SetFallingCell(GameObject disappear_Cell)
+    {
+        for (int j = 0; j < enable_Cells.Count; j++)
+        {
+            if (enable_Cells[j].transform.position.y > disappear_Cell.transform.position.y && enable_Cells[j].transform.position.x == disappear_Cell.transform.position.x)
+            {
+                Debug.Log("1");
+                // 내려올 셀 목록에 없다면 추가
+                if (!target_Positions.ContainsKey(enable_Cells[j]))
+                {
+                    Debug.Log("생성");
+                    target_Positions.Add(enable_Cells[j], new Vector3(enable_Cells[j].transform.position.x, enable_Cells[j].transform.position.y - 0.5f * empty_Positions.Count));
+                }
+                // 내려올 셀 목록에 있다면 변경
+                else
+                {
+                    target_Positions[enable_Cells[j]] = new Vector3(enable_Cells[j].transform.position.x, enable_Cells[j].transform.position.y - 0.5f * empty_Positions.Count);
+                }
+            }
+        }
     }
 
     // 셀 아래로 이동
-    void FillEmptyCell(GameObject own_Cell, Vector3 empty_Position)
+    void FallingCell()
     {
-        own_Cell.transform.position = Vector2.MoveTowards(own_Cell.transform.position, new Vector2(empty_Position.x, cell_CreateY), 2.5f * Time.deltaTime);
+        for (int i = 0; i < empty_Positions.Count; i++)
+        {
+            int check_Cell = 0;
+            for (int j = 0; j < target_Positions.Count; j++)
+            {
+                GameObject obj = target_Positions.Keys.ToList()[j];
+                Debug.Log(empty_Positions[i].x == obj.transform.position.x && empty_Positions[i].y < obj.transform.position.y);
+                if (empty_Positions[i].x == obj.transform.position.x && empty_Positions[i].y < obj.transform.position.y)
+                {
+                    obj.transform.position = Vector2.MoveTowards(obj.transform.position, empty_Positions[i], 2.5f * Time.deltaTime);
+
+                    if (obj.transform.position == target_Positions.Values.ToList()[j])
+                    {
+                        Debug.Log("목표 도달");
+                        target_Positions.Remove(obj);
+                        j--;
+                    }
+                }
+                else
+                {
+                    check_Cell++;
+                }
+            }
+
+            if (check_Cell >= target_Positions.Count)
+            {
+                empty_Positions.Remove(empty_Positions[i]);
+                i--;
+            }
+        }
     }
 }

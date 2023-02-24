@@ -7,7 +7,11 @@ public class Cell : MonoBehaviour
     void OnEnable()
     {
         Board.instance.enable_Cells.Add(gameObject);
-        Board.instance.disable_Cells.Remove(gameObject);
+
+        if (Board.instance.disable_Cells.Contains(gameObject))
+        {
+            Board.instance.disable_Cells.Remove(gameObject);
+        }
     }
 
     void OnDisable()

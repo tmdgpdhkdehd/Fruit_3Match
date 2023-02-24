@@ -292,9 +292,11 @@ public class MatchManager : MonoBehaviour
     bool ThreeMatch(Dictionary<string, GameObject> match_Cell)
     {
         bool isSuccess = false;
+
+        // 왼쪽 오른쪽
         if (match_Cell.ContainsKey(Direction.LEFT.ToString()) && match_Cell.ContainsKey(Direction.RIGHT.ToString()))
         {
-            // 이벤트가 되긴하는데 업데이트문에 어울리지않아 일단 주석처리
+            // 이벤트가 작동하긴 하는데 업데이트문에 어울리지않아 일단 주석처리
             //EventManager.instance.Match(match_Cell[Direction.LEFT.ToString()]);
             //EventManager.instance.Match(match_Cell[Direction.RIGHT.ToString()]);
 
@@ -303,6 +305,7 @@ public class MatchManager : MonoBehaviour
             isSuccess = true;
         }
 
+        // 위 아래
         else if (match_Cell.ContainsKey(Direction.UP.ToString()) && match_Cell.ContainsKey(Direction.DOWN.ToString()))
         {
             Board.instance.FillEmptyBoard(match_Cell[Direction.UP.ToString()]);
@@ -310,6 +313,7 @@ public class MatchManager : MonoBehaviour
             isSuccess = true;
         }
 
+        // 왼쪽 왼왼쪽
         else if (match_Cell.ContainsKey(Direction.LEFT.ToString()) && match_Cell.ContainsKey(Direction.LEFTLEFT.ToString()))
         {
             Board.instance.FillEmptyBoard(match_Cell[Direction.LEFT.ToString()]);
@@ -317,6 +321,7 @@ public class MatchManager : MonoBehaviour
             isSuccess = true;
         }
 
+        // 오른쪽 오른오른쪽
         else if (match_Cell.ContainsKey(Direction.RIGHT.ToString()) && match_Cell.ContainsKey(Direction.RIGHTRIGHT.ToString()))
         {
             Board.instance.FillEmptyBoard(match_Cell[Direction.RIGHT.ToString()]);
@@ -324,6 +329,7 @@ public class MatchManager : MonoBehaviour
             isSuccess = true;
         }
 
+        // 위 위위
         else if (match_Cell.ContainsKey(Direction.UP.ToString()) && match_Cell.ContainsKey(Direction.UPUP.ToString()))
         {
             Board.instance.FillEmptyBoard(match_Cell[Direction.UP.ToString()]);
@@ -331,6 +337,7 @@ public class MatchManager : MonoBehaviour
             isSuccess = true;
         }
 
+        // 아래 아래아래
         else if (match_Cell.ContainsKey(Direction.DOWN.ToString()) && match_Cell.ContainsKey(Direction.DOWNDOWN.ToString()))
         {
             Board.instance.FillEmptyBoard(match_Cell[Direction.DOWN.ToString()]);
