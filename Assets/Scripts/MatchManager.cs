@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class MatchManager : MonoBehaviour
 {
+    public static MatchManager instance;       // 싱글톤
+
     GameObject hit_Cell;        // 터치된 셀
     GameObject other_Cell;      // 바뀔 셀
     bool isRay = false;         // 터치 시 오브젝트 감지 여부
@@ -30,13 +32,15 @@ public class MatchManager : MonoBehaviour
 
     void Awake()
     {
+        instance = this;
+
         main_Camera = GameObject.Find("Main Camera").GetComponent<Camera>();        // 레이하기 위해 가져옴
     }
 
     void Update()
     {
-        // 클릭
-        if (Input.GetMouseButtonDown(0) && !isChange)
+        // 클릭, 보드가 상호작용 중일 때는 클릭 제한
+        if (Input.GetMouseButtonDown(0) && !isChange && Board.instance.empty_X.Count == 0)
         {
             hit_Cell = Ray(Input.mousePosition);
         }
@@ -83,7 +87,6 @@ public class MatchManager : MonoBehaviour
                 // 체인지 완료
                 if (hit_Cell.transform.position == other_Position && other_Cell.transform.position == hit_Position)
                 {
-                    Debug.Log(hit_Cell.transform.position);
                     // 매치되지 않았다면 다시 원상태로 체인지
                     if (!MatchType(hit_Cell) && !MatchType(other_Cell))
                     {
@@ -212,7 +215,7 @@ public class MatchManager : MonoBehaviour
     }
 
     // 매치 타입 확인
-    bool MatchType(GameObject own_Cell)
+    public bool MatchType(GameObject own_Cell)
     {
         Dictionary<string, GameObject> match_Cell_Dic = new Dictionary<string, GameObject>();
        
@@ -274,10 +277,11 @@ public class MatchManager : MonoBehaviour
         // 매치 확인
         if (match_Count >= 2)
         {
-            isSuccess = ThreeMatch(match_Cell_Dic);
+            isSuccess = ThreeMatch(own_Cell, match_Cell_Dic);
             if (isSuccess)
             {
-                Board.instance.FillEmptyBoard(own_Cell);
+                //Debug.Log("바꾼 셀: " + own_Cell.transform.position);
+                //Board.instance.FillEmptyBoard(own_Cell);
             }
             else
             {
@@ -289,7 +293,7 @@ public class MatchManager : MonoBehaviour
     }
 
     // 3매치 확인, 4매치 5매치는 이상하게 되서 else if 로 바꿨음
-    bool ThreeMatch(Dictionary<string, GameObject> match_Cell)
+    bool ThreeMatch(GameObject center_Cell, Dictionary<string, GameObject> match_Cell)
     {
         bool isSuccess = false;
 
@@ -300,51 +304,64 @@ public class MatchManager : MonoBehaviour
             //EventManager.instance.Match(match_Cell[Direction.LEFT.ToString()]);
             //EventManager.instance.Match(match_Cell[Direction.RIGHT.ToString()]);
 
-            Board.instance.FillEmptyBoard(match_Cell[Direction.LEFT.ToString()]);
-            Board.instance.FillEmptyBoard(match_Cell[Direction.RIGHT.ToString()]);
+            SuccessMatch(match_Cell[Direction.LEFT.ToString()]);
+            SuccessMatch(center_Cell);
+            SuccessMatch(match_Cell[Direction.RIGHT.ToString()]);
             isSuccess = true;
         }
 
         // 위 아래
         else if (match_Cell.ContainsKey(Direction.UP.ToString()) && match_Cell.ContainsKey(Direction.DOWN.ToString()))
         {
-            Board.instance.FillEmptyBoard(match_Cell[Direction.UP.ToString()]);
-            Board.instance.FillEmptyBoard(match_Cell[Direction.DOWN.ToString()]);
+            SuccessMatch(match_Cell[Direction.UP.ToString()]);
+            SuccessMatch(center_Cell);
+            SuccessMatch(match_Cell[Direction.DOWN.ToString()]);
             isSuccess = true;
         }
 
         // 왼쪽 왼왼쪽
         else if (match_Cell.ContainsKey(Direction.LEFT.ToString()) && match_Cell.ContainsKey(Direction.LEFTLEFT.ToString()))
         {
-            Board.instance.FillEmptyBoard(match_Cell[Direction.LEFT.ToString()]);
-            Board.instance.FillEmptyBoard(match_Cell[Direction.LEFTLEFT.ToString()]);
+            SuccessMatch(center_Cell);
+            SuccessMatch(match_Cell[Direction.LEFT.ToString()]);
+            SuccessMatch(match_Cell[Direction.LEFTLEFT.ToString()]);
             isSuccess = true;
         }
 
         // 오른쪽 오른오른쪽
         else if (match_Cell.ContainsKey(Direction.RIGHT.ToString()) && match_Cell.ContainsKey(Direction.RIGHTRIGHT.ToString()))
         {
-            Board.instance.FillEmptyBoard(match_Cell[Direction.RIGHT.ToString()]);
-            Board.instance.FillEmptyBoard(match_Cell[Direction.RIGHTRIGHT.ToString()]);
+            SuccessMatch(center_Cell);
+            SuccessMatch(match_Cell[Direction.RIGHT.ToString()]);
+            SuccessMatch(match_Cell[Direction.RIGHTRIGHT.ToString()]);
             isSuccess = true;
         }
 
         // 위 위위
         else if (match_Cell.ContainsKey(Direction.UP.ToString()) && match_Cell.ContainsKey(Direction.UPUP.ToString()))
         {
-            Board.instance.FillEmptyBoard(match_Cell[Direction.UP.ToString()]);
-            Board.instance.FillEmptyBoard(match_Cell[Direction.UPUP.ToString()]);
+            SuccessMatch(center_Cell);
+            SuccessMatch(match_Cell[Direction.UP.ToString()]);
+            SuccessMatch(match_Cell[Direction.UPUP.ToString()]);
             isSuccess = true;
         }
 
         // 아래 아래아래
         else if (match_Cell.ContainsKey(Direction.DOWN.ToString()) && match_Cell.ContainsKey(Direction.DOWNDOWN.ToString()))
         {
-            Board.instance.FillEmptyBoard(match_Cell[Direction.DOWN.ToString()]);
-            Board.instance.FillEmptyBoard(match_Cell[Direction.DOWNDOWN.ToString()]);
+            SuccessMatch(center_Cell);
+            SuccessMatch(match_Cell[Direction.DOWN.ToString()]);
+            SuccessMatch(match_Cell[Direction.DOWNDOWN.ToString()]);
+
             isSuccess = true;
         }
 
         return isSuccess;
+    }
+
+    void SuccessMatch(GameObject match_Cell)
+    {
+        Board.instance.FillEmptyBoard(match_Cell.transform.position);
+        match_Cell.SetActive(false);
     }
 }
