@@ -35,6 +35,16 @@ public class Board : MonoBehaviour
     void Start()
     {
         InstantiateCellBoard();
+
+        /*
+        for (int i = 0; i < enable_Cells.Count; i++)
+        {
+            if (MatchManager.instance.MatchType(enable_Cells[i]))
+            {
+                Debug.Log("셀 생성 후 매치 확인");
+            }
+        }
+        */
     }
 
 
@@ -55,7 +65,8 @@ public class Board : MonoBehaviour
             for (int j = 0; j < board_X; j++)
             {
                 GameObject current_Cell = Instantiate(cell);
-                current_Cell.transform.position = new Vector2(cell_NextX, cell_NextY);
+                current_Cell.transform.position = new Vector3(cell_NextX, cell_NextY);
+
                 cell_NextX += 0.5f;
             }
             cell_NextX = cell_CreateX;
@@ -83,13 +94,13 @@ public class Board : MonoBehaviour
         {
             GameObject show_Cell = disable_Cells[0];
             show_Cell.SetActive(true);
-            show_Cell.transform.position = new Vector2((float)x, cell_CreateY + 0.5f * empty_X[x]);
+            show_Cell.transform.position = new Vector3((float)x, cell_CreateY + 0.5f * empty_X[x]);
         }
         // 미사용중인 셀이 없으면 셀을 생성해서 맨 윗부분을 채움
         else
         {
             GameObject instantiate_Cell = Instantiate(cell);
-            instantiate_Cell.transform.position = new Vector2((float)x, cell_CreateY + 0.5f * empty_X[x]);
+            instantiate_Cell.transform.position = new Vector3((float)x, cell_CreateY + 0.5f * empty_X[x]);
         }
 
         SetFallingCell(empty_Position);
@@ -133,7 +144,7 @@ public class Board : MonoBehaviour
                 GameObject obj = target_Positions.Keys.ToList()[j];
                 if (x == (decimal)obj.transform.position.x)
                 {
-                    obj.transform.position = Vector2.MoveTowards(obj.transform.position, target_Positions[obj], 2.5f * Time.deltaTime);
+                    obj.transform.position = Vector3.MoveTowards(obj.transform.position, target_Positions[obj], 2.5f * Time.deltaTime);
 
                     if (obj.transform.position == target_Positions[obj])
                     {

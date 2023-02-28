@@ -10,7 +10,6 @@ public class MatchManager : MonoBehaviour
 
     GameObject hit_Cell;        // 터치된 셀
     GameObject other_Cell;      // 바뀔 셀
-    bool isRay = false;         // 터치 시 오브젝트 감지 여부
     bool isChange = false;      // 오브젝트 위치 변경 여부
     bool isRechange = false;    // 오브젝트 위치 원상태로 변경 여부
     Vector3 hit_Position;       // 터치된 셀의 위치
@@ -46,17 +45,16 @@ public class MatchManager : MonoBehaviour
         }
 
         // 클릭 뗌
-        if (Input.GetMouseButtonUp(0) && isRay && hit_Cell != null && !isChange)
+        if (Input.GetMouseButtonUp(0)&& hit_Cell != null && !isChange)
         {
             other_Cell = GetChangeDirectionCell();
             isChange = false;
-            isRay = false;
 
             if (other_Cell != null)
             {
                 isChange = true;
-                hit_Position = new Vector2(hit_Cell.transform.position.x, hit_Cell.transform.position.y);
-                other_Position = new Vector2(other_Cell.transform.position.x, other_Cell.transform.position.y);
+                hit_Position = new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y);
+                other_Position = new Vector3(other_Cell.transform.position.x, other_Cell.transform.position.y);
             }
         }
     }
@@ -112,21 +110,20 @@ public class MatchManager : MonoBehaviour
         isChange = false;
     }
 
-    // 터치 시 오브젝트 감지 확인
-    GameObject Ray(Vector2 ray_Position)
+    // 오브젝트 감지
+    GameObject Ray(Vector3 ray_Position)
     {
         RaycastHit hit;             // 터치된 셀을 담을 변수
-        Ray touchray;               // 터치 좌표를 담는 변수
+        Ray ray;                    // 터치 좌표를 담는 변수
 
-        touchray = Camera.main.ScreenPointToRay(ray_Position);
+        ray = Camera.main.ScreenPointToRay(ray_Position);
 
-        // 터치한 곳에 ray를 보냄
-        Physics.Raycast(touchray, out hit);
+        // 알고싶은 위치에 ray를 보냄
+        Physics.Raycast(ray, out hit);
 
         // ray가 오브젝트에 부딪힐 경우
         if (hit.collider != null)
         {
-            isRay = true;
             return hit.collider.gameObject.transform.parent.gameObject;     // 부모인 셀 자체를 가져와야 함
         }
 
@@ -138,7 +135,7 @@ public class MatchManager : MonoBehaviour
     GameObject GetChangeDirectionCell()
     {
         GameObject other_Cell;
-        Vector2 mouse_Point = main_Camera.ScreenToWorldPoint(Input.mousePosition);       // 마우스 위치가 글로벌 위치이므로 로컬위치로 변경하여 반환
+        Vector3 mouse_Point = main_Camera.ScreenToWorldPoint(Input.mousePosition);       // 마우스 위치가 글로벌 위치이므로 로컬위치로 변경하여 반환
 
         // 오른쪽
         if (mouse_Point.x >= hit_Cell.transform.position.x)
@@ -149,12 +146,12 @@ public class MatchManager : MonoBehaviour
                 // 오른쪽
                 if (Math.Abs(mouse_Point.x - hit_Cell.transform.position.x) >= Math.Abs(mouse_Point.y - hit_Cell.transform.position.y))
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector2(hit_Cell.transform.position.x + 0.5f, hit_Cell.transform.position.y)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x + 0.5f, hit_Cell.transform.position.y)));
                 }
                 // 위
                 else
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector2(hit_Cell.transform.position.x, hit_Cell.transform.position.y + 0.5f)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y + 0.5f)));
                 }
             }
             // 아래
@@ -163,12 +160,12 @@ public class MatchManager : MonoBehaviour
                 // 오른쪽
                 if (Math.Abs(mouse_Point.x - hit_Cell.transform.position.x) >= Math.Abs(hit_Cell.transform.position.y - mouse_Point.y))
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector2(hit_Cell.transform.position.x + 0.5f, hit_Cell.transform.position.y)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x + 0.5f, hit_Cell.transform.position.y)));
                 }
                 // 아래
                 else
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector2(hit_Cell.transform.position.x, hit_Cell.transform.position.y - 0.5f)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y - 0.5f)));
                 }
             }
         }
@@ -181,12 +178,12 @@ public class MatchManager : MonoBehaviour
                 // 왼쪽
                 if (Math.Abs(hit_Cell.transform.position.x - mouse_Point.x) >= Math.Abs(mouse_Point.y - hit_Cell.transform.position.y))
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector2(hit_Cell.transform.position.x - 0.5f, hit_Cell.transform.position.y)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x - 0.5f, hit_Cell.transform.position.y)));
                 }
                 // 위
                 else
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector2(hit_Cell.transform.position.x, hit_Cell.transform.position.y + 0.5f)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y + 0.5f)));
                 }
             }
             // 아래
@@ -195,12 +192,12 @@ public class MatchManager : MonoBehaviour
                 // 왼쪽
                 if (Math.Abs(mouse_Point.x - hit_Cell.transform.position.x) >= Math.Abs(hit_Cell.transform.position.y - mouse_Point.y))
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector2(hit_Cell.transform.position.x - 0.5f, hit_Cell.transform.position.y)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x - 0.5f, hit_Cell.transform.position.y)));
                 }
                 // 아래
                 else
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector2(hit_Cell.transform.position.x, hit_Cell.transform.position.y - 0.5f)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y - 0.5f)));
                 }
             }
         }
@@ -210,27 +207,27 @@ public class MatchManager : MonoBehaviour
     // 셀 위치 변경
     void ChangeCell(GameObject own_Cell, Vector3 other_Position, GameObject other_Cell, Vector3 own_Position)
     {
-        own_Cell.transform.position = Vector2.MoveTowards(own_Cell.transform.position, other_Position, 2.5f * Time.deltaTime);
-        other_Cell.transform.position = Vector2.MoveTowards(other_Cell.transform.position, own_Position, 2.5f * Time.deltaTime);
+        own_Cell.transform.position = Vector3.MoveTowards(own_Cell.transform.position, other_Position, 2.5f * Time.deltaTime);
+        other_Cell.transform.position = Vector3.MoveTowards(other_Cell.transform.position, own_Position, 2.5f * Time.deltaTime);
     }
 
     // 매치 타입 확인
     public bool MatchType(GameObject own_Cell)
     {
         Dictionary<string, GameObject> match_Cell_Dic = new Dictionary<string, GameObject>();
-       
+
         GameObject own_Fruit = own_Cell.transform.GetChild(0).gameObject;
         Sprite own_Sprite = own_Fruit.GetComponent<SpriteRenderer>().sprite;
         List<GameObject> direction_Cell = new List<GameObject>()
         {
-            Ray(main_Camera.WorldToScreenPoint(new Vector2(own_Cell.transform.position.x - 0.5f, own_Cell.transform.position.y))),      // 왼쪽
-            Ray(main_Camera.WorldToScreenPoint(new Vector2(own_Cell.transform.position.x + 0.5f, own_Cell.transform.position.y))),      // 오른쪽
-            Ray(main_Camera.WorldToScreenPoint(new Vector2(own_Cell.transform.position.x, own_Cell.transform.position.y + 0.5f))),      // 위
-            Ray(main_Camera.WorldToScreenPoint(new Vector2(own_Cell.transform.position.x, own_Cell.transform.position.y - 0.5f))),      // 아래
-            Ray(main_Camera.WorldToScreenPoint(new Vector2(own_Cell.transform.position.x - 1.0f, own_Cell.transform.position.y))),      // 왼쪽왼쪽
-            Ray(main_Camera.WorldToScreenPoint(new Vector2(own_Cell.transform.position.x + 1.0f, own_Cell.transform.position.y))),      // 오른쪽오른쪽
-            Ray(main_Camera.WorldToScreenPoint(new Vector2(own_Cell.transform.position.x, own_Cell.transform.position.y + 1.0f))),      // 위위
-            Ray(main_Camera.WorldToScreenPoint(new Vector2(own_Cell.transform.position.x, own_Cell.transform.position.y - 1.0f)))       // 아래아래
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x - 0.5f, own_Cell.transform.position.y))),      // 왼쪽
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x + 0.5f, own_Cell.transform.position.y))),      // 오른쪽
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x, own_Cell.transform.position.y + 0.5f))),      // 위
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x, own_Cell.transform.position.y - 0.5f))),      // 아래
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x - 1.0f, own_Cell.transform.position.y))),      // 왼쪽왼쪽
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x + 1.0f, own_Cell.transform.position.y))),      // 오른쪽오른쪽
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x, own_Cell.transform.position.y + 1.0f))),      // 위위
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x, own_Cell.transform.position.y - 1.0f)))       // 아래아래
         };
         List<GameObject> direction_Fruit = new List<GameObject>();
         List<Sprite> direction_Sprite = new List<Sprite>();
