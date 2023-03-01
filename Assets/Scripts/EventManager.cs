@@ -6,17 +6,16 @@ using UnityEngine;
 public class EventManager : MonoBehaviour
 {
     public static EventManager instance;       // ΩÃ±€≈Ê
-    public delegate void EventHandler(GameObject obj);
-    public static event EventHandler EmptyBoard;
+    public delegate void EventHandler();
+    public static event EventHandler MatchBoard;
 
     void Awake()
     {
         instance = this;
     }
 
-    public void Match(GameObject obj)
+    public void InstantiateBoard()
     {
-        Debug.Log(obj);
-        EmptyBoard(obj);
+        MatchBoard();
     }
 }

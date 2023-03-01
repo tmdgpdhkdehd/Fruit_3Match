@@ -35,18 +35,7 @@ public class Board : MonoBehaviour
     void Start()
     {
         InstantiateCellBoard();
-
-        /*
-        for (int i = 0; i < enable_Cells.Count; i++)
-        {
-            if (MatchManager.instance.MatchType(enable_Cells[i]))
-            {
-                Debug.Log("셀 생성 후 매치 확인");
-            }
-        }
-        */
     }
-
 
     void FixedUpdate()
     {

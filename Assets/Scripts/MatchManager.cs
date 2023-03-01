@@ -16,6 +16,8 @@ public class MatchManager : MonoBehaviour
     Vector3 other_Position;     // 바뀔 셀의 위치
     Camera main_Camera;         // 메인 카메라
 
+    EventManager event_Board = new EventManager();
+
     // 같은 과일 확인할 방향
     enum Direction
     {
@@ -34,6 +36,22 @@ public class MatchManager : MonoBehaviour
         instance = this;
 
         main_Camera = GameObject.Find("Main Camera").GetComponent<Camera>();        // 레이하기 위해 가져옴
+    }
+
+    private void Start()
+    {
+        Invoke("StartMatch", 0.01f);
+    }
+
+    public void StartMatch()
+    {
+        for (int i = 0; i < Board.instance.enable_Cells.Count; i++)
+        {
+            if (MatchType(Board.instance.enable_Cells[i]))
+            {
+                Debug.Log("셀 생성 후 매치 확인2");
+            }
+        }
     }
 
     void Update()
@@ -297,10 +315,6 @@ public class MatchManager : MonoBehaviour
         // 왼쪽 오른쪽
         if (match_Cell.ContainsKey(Direction.LEFT.ToString()) && match_Cell.ContainsKey(Direction.RIGHT.ToString()))
         {
-            // 이벤트가 작동하긴 하는데 업데이트문에 어울리지않아 일단 주석처리
-            //EventManager.instance.Match(match_Cell[Direction.LEFT.ToString()]);
-            //EventManager.instance.Match(match_Cell[Direction.RIGHT.ToString()]);
-
             SuccessMatch(match_Cell[Direction.LEFT.ToString()]);
             SuccessMatch(center_Cell);
             SuccessMatch(match_Cell[Direction.RIGHT.ToString()]);
@@ -356,6 +370,7 @@ public class MatchManager : MonoBehaviour
         return isSuccess;
     }
 
+    // 매치 성공
     void SuccessMatch(GameObject match_Cell)
     {
         Board.instance.FillEmptyBoard(match_Cell.transform.position);
