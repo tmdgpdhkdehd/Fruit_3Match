@@ -8,17 +8,15 @@ public class MatchManager : MonoBehaviour
 {
     public static MatchManager instance;       // 싱글톤
 
-    GameObject hit_Cell;        // 터치된 셀
-    GameObject other_Cell;      // 바뀔 셀
+    GameObject change_Cell;     // 체인지할 셀
+    GameObject other_Cell;      // 체인지될 셀
     bool isChange = false;      // 오브젝트 위치 변경 여부
     bool isRechange = false;    // 오브젝트 위치 원상태로 변경 여부
     Vector3 hit_Position;       // 터치된 셀의 위치
     Vector3 other_Position;     // 바뀔 셀의 위치
     Camera main_Camera;         // 메인 카메라
 
-    EventManager event_Board = new EventManager();
-
-    // 같은 과일 확인할 방향
+    // 같은 과일인지 확인할 방향
     enum Direction
     {
         LEFT = 0,
@@ -40,17 +38,26 @@ public class MatchManager : MonoBehaviour
 
     private void Start()
     {
-        Invoke("StartMatch", 0.01f);
+        Invoke("StartMatch", 0.001f);
     }
 
+    // 보드 생성 직후 매치 있는지 확인
     public void StartMatch()
     {
+        bool isMatch = false;
+
         for (int i = 0; i < Board.instance.enable_Cells.Count; i++)
         {
-            if (MatchType(Board.instance.enable_Cells[i]))
+            if (MatchCheck(Board.instance.enable_Cells[i], false))
             {
-                Debug.Log("셀 생성 후 매치 확인2");
+                isMatch = true;
             }
+        }
+
+        // 매치되서 바꿨을 경우, 다시 매치되었는지 확인
+        if (isMatch)
+        {
+            StartMatch();
         }
     }
 
@@ -59,11 +66,11 @@ public class MatchManager : MonoBehaviour
         // 클릭, 보드가 상호작용 중일 때는 클릭 제한
         if (Input.GetMouseButtonDown(0) && !isChange && Board.instance.empty_X.Count == 0)
         {
-            hit_Cell = Ray(Input.mousePosition);
+            change_Cell = Ray(Input.mousePosition);
         }
 
         // 클릭 뗌
-        if (Input.GetMouseButtonUp(0)&& hit_Cell != null && !isChange)
+        if (Input.GetMouseButtonUp(0)&& change_Cell != null && !isChange)
         {
             other_Cell = GetChangeDirectionCell();
             isChange = false;
@@ -71,7 +78,7 @@ public class MatchManager : MonoBehaviour
             if (other_Cell != null)
             {
                 isChange = true;
-                hit_Position = new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y);
+                hit_Position = new Vector3(change_Cell.transform.position.x, change_Cell.transform.position.y);
                 other_Position = new Vector3(other_Cell.transform.position.x, other_Cell.transform.position.y);
             }
         }
@@ -79,16 +86,16 @@ public class MatchManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        // 셀 체인지
+        // 셀 체인지 여부
         if (isChange)
         {
             // 다시 원상태로 체인지
             if (isRechange)
             {
-                ChangeCell(other_Cell, other_Position, hit_Cell, hit_Position);
+                ChangeCell(other_Cell, other_Position, change_Cell, hit_Position);
 
                 // 원상태로 체인지 완료, 초기화
-                if (hit_Cell.transform.position == hit_Position && other_Cell.transform.position == other_Position)
+                if (change_Cell.transform.position == hit_Position && other_Cell.transform.position == other_Position)
                 {
                     isRechange = false;
                     ResetChangeCell();
@@ -98,13 +105,13 @@ public class MatchManager : MonoBehaviour
             // 셀 체인지
             else
             {
-                ChangeCell(hit_Cell, other_Position, other_Cell, hit_Position);
+                ChangeCell(change_Cell, other_Position, other_Cell, hit_Position);
 
                 // 체인지 완료
-                if (hit_Cell.transform.position == other_Position && other_Cell.transform.position == hit_Position)
+                if (change_Cell.transform.position == other_Position && other_Cell.transform.position == hit_Position)
                 {
                     // 매치되지 않았다면 다시 원상태로 체인지
-                    if (!MatchType(hit_Cell) && !MatchType(other_Cell))
+                    if (!MatchCheck(change_Cell) && !MatchCheck(other_Cell))
                     {
                         isRechange = true;
                     }
@@ -121,7 +128,7 @@ public class MatchManager : MonoBehaviour
     // 셀 체인지 정보 초기화
     void ResetChangeCell()
     {
-        hit_Cell = null;
+        change_Cell = null;
         other_Cell = null;
         hit_Position = new Vector3(0, 0, 0);
         other_Position = new Vector3(0, 0, 0);
@@ -156,34 +163,34 @@ public class MatchManager : MonoBehaviour
         Vector3 mouse_Point = main_Camera.ScreenToWorldPoint(Input.mousePosition);       // 마우스 위치가 글로벌 위치이므로 로컬위치로 변경하여 반환
 
         // 오른쪽
-        if (mouse_Point.x >= hit_Cell.transform.position.x)
+        if (mouse_Point.x >= change_Cell.transform.position.x)
         {
             // 위
-            if (mouse_Point.y >= hit_Cell.transform.position.y)
+            if (mouse_Point.y >= change_Cell.transform.position.y)
             {
                 // 오른쪽
-                if (Math.Abs(mouse_Point.x - hit_Cell.transform.position.x) >= Math.Abs(mouse_Point.y - hit_Cell.transform.position.y))
+                if (Math.Abs(mouse_Point.x - change_Cell.transform.position.x) >= Math.Abs(mouse_Point.y - change_Cell.transform.position.y))
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x + 0.5f, hit_Cell.transform.position.y)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(change_Cell.transform.position.x + 0.5f, change_Cell.transform.position.y)));
                 }
                 // 위
                 else
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y + 0.5f)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(change_Cell.transform.position.x, change_Cell.transform.position.y + 0.5f)));
                 }
             }
             // 아래
             else
             {
                 // 오른쪽
-                if (Math.Abs(mouse_Point.x - hit_Cell.transform.position.x) >= Math.Abs(hit_Cell.transform.position.y - mouse_Point.y))
+                if (Math.Abs(mouse_Point.x - change_Cell.transform.position.x) >= Math.Abs(change_Cell.transform.position.y - mouse_Point.y))
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x + 0.5f, hit_Cell.transform.position.y)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(change_Cell.transform.position.x + 0.5f, change_Cell.transform.position.y)));
                 }
                 // 아래
                 else
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y - 0.5f)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(change_Cell.transform.position.x, change_Cell.transform.position.y - 0.5f)));
                 }
             }
         }
@@ -191,31 +198,31 @@ public class MatchManager : MonoBehaviour
         else
         {
             // 위
-            if (mouse_Point.y >= hit_Cell.transform.position.y)
+            if (mouse_Point.y >= change_Cell.transform.position.y)
             {
                 // 왼쪽
-                if (Math.Abs(hit_Cell.transform.position.x - mouse_Point.x) >= Math.Abs(mouse_Point.y - hit_Cell.transform.position.y))
+                if (Math.Abs(change_Cell.transform.position.x - mouse_Point.x) >= Math.Abs(mouse_Point.y - change_Cell.transform.position.y))
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x - 0.5f, hit_Cell.transform.position.y)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(change_Cell.transform.position.x - 0.5f, change_Cell.transform.position.y)));
                 }
                 // 위
                 else
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y + 0.5f)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(change_Cell.transform.position.x, change_Cell.transform.position.y + 0.5f)));
                 }
             }
             // 아래
             else
             {
                 // 왼쪽
-                if (Math.Abs(mouse_Point.x - hit_Cell.transform.position.x) >= Math.Abs(hit_Cell.transform.position.y - mouse_Point.y))
+                if (Math.Abs(mouse_Point.x - change_Cell.transform.position.x) >= Math.Abs(change_Cell.transform.position.y - mouse_Point.y))
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x - 0.5f, hit_Cell.transform.position.y)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(change_Cell.transform.position.x - 0.5f, change_Cell.transform.position.y)));
                 }
                 // 아래
                 else
                 {
-                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(hit_Cell.transform.position.x, hit_Cell.transform.position.y - 0.5f)));
+                    other_Cell = Ray(main_Camera.WorldToScreenPoint(new Vector3(change_Cell.transform.position.x, change_Cell.transform.position.y - 0.5f)));
                 }
             }
         }
@@ -229,8 +236,8 @@ public class MatchManager : MonoBehaviour
         other_Cell.transform.position = Vector3.MoveTowards(other_Cell.transform.position, own_Position, 2.5f * Time.deltaTime);
     }
 
-    // 매치 타입 확인
-    public bool MatchType(GameObject own_Cell)
+    // 매치 확인
+    public bool MatchCheck(GameObject own_Cell, bool isPlayer = true)
     {
         Dictionary<string, GameObject> match_Cell_Dic = new Dictionary<string, GameObject>();
 
@@ -289,18 +296,22 @@ public class MatchManager : MonoBehaviour
         bool isSuccess = false;
 
         Debug.Log($"같은 과일 {match_Count}개");
+
         // 매치 확인
         if (match_Count >= 2)
         {
-            isSuccess = ThreeMatch(own_Cell, match_Cell_Dic);
-            if (isSuccess)
+            // 플레이어 시작 전 매치된 경우, 이미지만 바꿈
+            if (!isPlayer)
             {
-                //Debug.Log("바꾼 셀: " + own_Cell.transform.position);
-                //Board.instance.FillEmptyBoard(own_Cell);
+                own_Fruit.SetActive(false);
+                own_Fruit.SetActive(true);
+
+                isSuccess = true;
             }
+            // 플레이어 시작 후 매치된 경우
             else
             {
-
+                isSuccess = ThreeMatch(own_Cell, match_Cell_Dic);
             }
         }
 

@@ -47,7 +47,7 @@ public class Board : MonoBehaviour
     }
 
     // 보드 생성
-    void InstantiateCellBoard()
+    public void InstantiateCellBoard()
     {
         for (int i = 0; i < board_Y; i++)
         {
@@ -135,6 +135,7 @@ public class Board : MonoBehaviour
                 {
                     obj.transform.position = Vector3.MoveTowards(obj.transform.position, target_Positions[obj], 2.5f * Time.deltaTime);
 
+                    // 셀이 목표 위치에 도달
                     if (obj.transform.position == target_Positions[obj])
                     {
                         target_Positions.Remove(obj);
@@ -146,9 +147,19 @@ public class Board : MonoBehaviour
                 }
             }
 
+            // 같은 x축 셀들이 모두 목표 위치에 도달했다면 해당 x축을 빈 x축에서 제외 
             if (check_Cell >= target_Positions.Count)
             {
                 empty_X.Remove(x);
+            }
+        }
+
+        // 모든 셀이 내려왔을 경우
+        if (empty_X.Count == 0)
+        {
+            for (int i = 0; i < enable_Cells.Count; i++)
+            {
+                MatchManager.instance.MatchCheck(enable_Cells[i]);
             }
         }
     }
