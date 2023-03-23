@@ -16,8 +16,8 @@ public class MatchManager : MonoBehaviour
     Vector3 other_Position;     // 바뀔 셀의 위치
     Camera main_Camera;         // 메인 카메라
 
-    // 같은 과일인지 확인할 방향
-    enum Direction
+    // 매치인지 확인할 방향
+    enum MatchDirection
     {
         LEFT = 0,
         RIGHT,
@@ -29,36 +29,28 @@ public class MatchManager : MonoBehaviour
         DOWNDOWN
     };
 
+    // 매치가 가능한지 확인할 방향
+    enum CanMatchDirection
+    {
+        LEFT = 0,
+        RIGHT,
+        UP,
+        DOWN,
+        LEFTUP,
+        LEFTDOWN,
+        RIGHTUP,
+        RIGHTDOWN,
+        LEFTLEFT,
+        RIGHTRIGHT,
+        UPUP,
+        DOWNDOWN
+    };
+
     void Awake()
     {
         instance = this;
 
         main_Camera = GameObject.Find("Main Camera").GetComponent<Camera>();        // 레이하기 위해 가져옴
-    }
-
-    private void Start()
-    {
-        Invoke("StartMatch", 0.001f);
-    }
-
-    // 보드 생성 직후 매치 있는지 확인
-    public void StartMatch()
-    {
-        bool isMatch = false;
-
-        for (int i = 0; i < Board.instance.enable_Cells.Count; i++)
-        {
-            if (MatchCheck(Board.instance.enable_Cells[i], false))
-            {
-                isMatch = true;
-            }
-        }
-
-        // 매치되서 바꿨을 경우, 다시 매치되었는지 확인
-        if (isMatch)
-        {
-            StartMatch();
-        }
     }
 
     void Update()
@@ -236,6 +228,174 @@ public class MatchManager : MonoBehaviour
         other_Cell.transform.position = Vector3.MoveTowards(other_Cell.transform.position, own_Position, 2.5f * Time.deltaTime);
     }
 
+    // 매치 가능한지 확인
+    public bool CanMatchCheck(GameObject own_Cell)
+    {
+        Dictionary<string, GameObject> match_Cell_Dic = new Dictionary<string, GameObject>();
+
+        GameObject own_Fruit = own_Cell.transform.GetChild(0).gameObject;
+        Sprite own_Sprite = own_Fruit.GetComponent<SpriteRenderer>().sprite;
+        List<GameObject> direction_Cell = new List<GameObject>()
+        {
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x - 0.5f, own_Cell.transform.position.y))),              // 왼쪽
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x + 0.5f, own_Cell.transform.position.y))),              // 오른쪽
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x, own_Cell.transform.position.y + 0.5f))),              // 위
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x, own_Cell.transform.position.y - 0.5f))),              // 아래
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x - 0.5f, own_Cell.transform.position.y + 0.5f))),       // 왼쪽 위
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x - 0.5f, own_Cell.transform.position.y - 0.5f))),       // 왼쪽 아래
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x + 0.5f, own_Cell.transform.position.y + 0.5f))),       // 오른쪽 위
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x + 0.5f, own_Cell.transform.position.y - 0.5f))),       // 오른쪽 아래
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x - 1.0f, own_Cell.transform.position.y))),              // 왼쪽왼쪽
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x + 1.0f, own_Cell.transform.position.y))),              // 오른쪽오른쪽
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x, own_Cell.transform.position.y + 1.0f))),              // 위위
+            Ray(main_Camera.WorldToScreenPoint(new Vector3(own_Cell.transform.position.x, own_Cell.transform.position.y - 1.0f)))               // 아래아래
+        };
+        List<GameObject> direction_Fruit = new List<GameObject>();
+        List<Sprite> direction_Sprite = new List<Sprite>();
+
+
+        for (int i = 0; i < Enum.GetValues(typeof(CanMatchDirection)).Length; i++)
+        {
+            // 셀이 없는지 확인
+            if (direction_Cell[i] != null)
+            {
+                direction_Fruit.Add(direction_Cell[i].transform.GetChild(0).gameObject);
+            }
+            else
+            {
+                direction_Fruit.Add(null);
+            }
+
+            // 이미지가 없는지 확인
+            if (direction_Fruit[i] != null)
+            {
+                direction_Sprite.Add(direction_Fruit[i].GetComponent<SpriteRenderer>().sprite);
+            }
+            else
+            {
+                direction_Sprite.Add(null);
+            }
+        }
+
+        // 일치하는 과일 찾기
+        int match_Count = 0;
+        for (int i = 0; i < direction_Sprite.Count; i++)
+        {
+            if (direction_Sprite[i] != null && direction_Cell[i].transform.position != own_Cell.transform.position)
+            {
+                if (own_Sprite == direction_Sprite[i])
+                {
+                    match_Count++;
+                    match_Cell_Dic.Add(Enum.GetName(typeof(CanMatchDirection), i), direction_Cell[i]);
+                }
+            }
+        }
+
+        bool isCanMatch = false;
+
+        // 매치 확인
+        if (match_Count >= 2)
+        {
+            if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFTUP.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHTUP.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFTDOWN.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHTDOWN.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFTUP.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.LEFTDOWN.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHTUP.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHTDOWN.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFT.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHTUP.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFT.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHTDOWN.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFTDOWN.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHT.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFTUP.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHT.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFTDOWN.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.UP.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHTDOWN.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.UP.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFTUP.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.DOWN.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHTUP.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.DOWN.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.UP.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.DOWNDOWN.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.UPUP.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.DOWN.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFTLEFT.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHT.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+
+            else if (match_Cell_Dic.ContainsKey(CanMatchDirection.LEFT.ToString()) && match_Cell_Dic.ContainsKey(CanMatchDirection.RIGHTRIGHT.ToString()))
+            {
+                isCanMatch = true;
+                return isCanMatch;
+            }
+        }
+
+        return isCanMatch;
+    }
+
     // 매치 확인
     public bool MatchCheck(GameObject own_Cell, bool isPlayer = true)
     {
@@ -257,9 +417,9 @@ public class MatchManager : MonoBehaviour
         List<GameObject> direction_Fruit = new List<GameObject>();
         List<Sprite> direction_Sprite = new List<Sprite>();
 
-
-        for (int i = 0; i < Enum.GetValues(typeof(Direction)).Length; i++)
+        for (int i = 0; i < Enum.GetValues(typeof(MatchDirection)).Length; i++)
         {
+            // 셀이 없는지 확인
             if (direction_Cell[i] != null)
             {
                 direction_Fruit.Add(direction_Cell[i].transform.GetChild(0).gameObject);
@@ -269,6 +429,7 @@ public class MatchManager : MonoBehaviour
                 direction_Fruit.Add(null);
             }
 
+            // 이미지가 없는지 확인
             if (direction_Fruit[i] != null)
             {
                 direction_Sprite.Add(direction_Fruit[i].GetComponent<SpriteRenderer>().sprite);
@@ -279,7 +440,7 @@ public class MatchManager : MonoBehaviour
             }
         }
 
-        // 상하좌우 일치하는 과일 찾기
+        // 일치하는 과일 찾기
         int match_Count = 0;
         for (int i = 0; i < direction_Sprite.Count; i++)
         {
@@ -288,7 +449,7 @@ public class MatchManager : MonoBehaviour
                 if (own_Sprite == direction_Sprite[i])
                 {
                     match_Count++;
-                    match_Cell_Dic.Add(Enum.GetName(typeof(Direction), i), direction_Cell[i]);
+                    match_Cell_Dic.Add(Enum.GetName(typeof(MatchDirection), i), direction_Cell[i]);
                 }
             }
         }
@@ -303,6 +464,7 @@ public class MatchManager : MonoBehaviour
             // 플레이어 시작 전 매치된 경우, 이미지만 바꿈
             if (!isPlayer)
             {
+                Debug.Log("이미지 바꿈");
                 own_Fruit.SetActive(false);
                 own_Fruit.SetActive(true);
 
@@ -319,61 +481,61 @@ public class MatchManager : MonoBehaviour
     }
 
     // 3매치 확인, 4매치 5매치는 이상하게 되서 else if 로 바꿨음
-    bool ThreeMatch(GameObject center_Cell, Dictionary<string, GameObject> match_Cell)
+    bool ThreeMatch(GameObject center_Cell, Dictionary<string, GameObject> match_Cell_Dic)
     {
         bool isSuccess = false;
 
         // 왼쪽 오른쪽
-        if (match_Cell.ContainsKey(Direction.LEFT.ToString()) && match_Cell.ContainsKey(Direction.RIGHT.ToString()))
+        if (match_Cell_Dic.ContainsKey(MatchDirection.LEFT.ToString()) && match_Cell_Dic.ContainsKey(MatchDirection.RIGHT.ToString()))
         {
-            SuccessMatch(match_Cell[Direction.LEFT.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.LEFT.ToString()]);
             SuccessMatch(center_Cell);
-            SuccessMatch(match_Cell[Direction.RIGHT.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.RIGHT.ToString()]);
             isSuccess = true;
         }
 
         // 위 아래
-        else if (match_Cell.ContainsKey(Direction.UP.ToString()) && match_Cell.ContainsKey(Direction.DOWN.ToString()))
+        else if (match_Cell_Dic.ContainsKey(MatchDirection.UP.ToString()) && match_Cell_Dic.ContainsKey(MatchDirection.DOWN.ToString()))
         {
-            SuccessMatch(match_Cell[Direction.UP.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.UP.ToString()]);
             SuccessMatch(center_Cell);
-            SuccessMatch(match_Cell[Direction.DOWN.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.DOWN.ToString()]);
             isSuccess = true;
         }
 
         // 왼쪽 왼왼쪽
-        else if (match_Cell.ContainsKey(Direction.LEFT.ToString()) && match_Cell.ContainsKey(Direction.LEFTLEFT.ToString()))
+        else if (match_Cell_Dic.ContainsKey(MatchDirection.LEFT.ToString()) && match_Cell_Dic.ContainsKey(MatchDirection.LEFTLEFT.ToString()))
         {
             SuccessMatch(center_Cell);
-            SuccessMatch(match_Cell[Direction.LEFT.ToString()]);
-            SuccessMatch(match_Cell[Direction.LEFTLEFT.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.LEFT.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.LEFTLEFT.ToString()]);
             isSuccess = true;
         }
 
         // 오른쪽 오른오른쪽
-        else if (match_Cell.ContainsKey(Direction.RIGHT.ToString()) && match_Cell.ContainsKey(Direction.RIGHTRIGHT.ToString()))
+        else if (match_Cell_Dic.ContainsKey(MatchDirection.RIGHT.ToString()) && match_Cell_Dic.ContainsKey(MatchDirection.RIGHTRIGHT.ToString()))
         {
             SuccessMatch(center_Cell);
-            SuccessMatch(match_Cell[Direction.RIGHT.ToString()]);
-            SuccessMatch(match_Cell[Direction.RIGHTRIGHT.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.RIGHT.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.RIGHTRIGHT.ToString()]);
             isSuccess = true;
         }
 
         // 위 위위
-        else if (match_Cell.ContainsKey(Direction.UP.ToString()) && match_Cell.ContainsKey(Direction.UPUP.ToString()))
+        else if (match_Cell_Dic.ContainsKey(MatchDirection.UP.ToString()) && match_Cell_Dic.ContainsKey(MatchDirection.UPUP.ToString()))
         {
             SuccessMatch(center_Cell);
-            SuccessMatch(match_Cell[Direction.UP.ToString()]);
-            SuccessMatch(match_Cell[Direction.UPUP.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.UP.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.UPUP.ToString()]);
             isSuccess = true;
         }
 
         // 아래 아래아래
-        else if (match_Cell.ContainsKey(Direction.DOWN.ToString()) && match_Cell.ContainsKey(Direction.DOWNDOWN.ToString()))
+        else if (match_Cell_Dic.ContainsKey(MatchDirection.DOWN.ToString()) && match_Cell_Dic.ContainsKey(MatchDirection.DOWNDOWN.ToString()))
         {
             SuccessMatch(center_Cell);
-            SuccessMatch(match_Cell[Direction.DOWN.ToString()]);
-            SuccessMatch(match_Cell[Direction.DOWNDOWN.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.DOWN.ToString()]);
+            SuccessMatch(match_Cell_Dic[MatchDirection.DOWNDOWN.ToString()]);
 
             isSuccess = true;
         }

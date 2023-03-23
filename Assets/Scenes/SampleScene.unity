@@ -195,6 +195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92d17284763a5694abcc7a94e3a59638, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  board: {fileID: 0}
   cell: {fileID: 7589572476808643287, guid: 73bf3819a20d480439b6af15fdc6c70c, type: 3}
   cell_CreateX: -1.5
   cell_CreateY: 0
@@ -204,7 +205,6 @@ MonoBehaviour:
   board_Y: 7
   enable_Cells: []
   disable_Cells: []
-  empty_Position: {x: 0, y: 0, z: 0}
   down_Cells: []
 --- !u!4 &423120304
 Transform:

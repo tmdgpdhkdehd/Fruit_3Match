@@ -4,12 +4,9 @@ using UnityEngine;
 
 public class Cell : MonoBehaviour
 {
-    GameObject board;
-
     private void Start()
     {
-        board = GameObject.Find("Board");
-        gameObject.transform.parent = board.transform;
+        gameObject.transform.parent = Board.instance.board.transform;
     }
 
     void OnEnable()

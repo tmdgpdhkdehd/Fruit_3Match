@@ -8,6 +8,7 @@ public class Board : MonoBehaviour
 {
     public static Board instance;       // 싱글톤
 
+    public GameObject board;               // 보드
     public GameObject cell;         // 셀
     public float cell_CreateX;      // 셀 처음 X축 위치
     public float cell_CreateY;      // 셀 처음 Y축 위치
@@ -28,13 +29,23 @@ public class Board : MonoBehaviour
     {
         instance = this;
 
+        board = GameObject.Find("Board");
+
         cell_NextX = cell_CreateX;
         cell_NextY = cell_CreateY;
     }
 
-    void Start()
+    private void Reset()
+    {
+        cell_NextX = cell_CreateX;
+        cell_NextY = cell_CreateY;
+    }
+
+    private void Start()
     {
         InstantiateCellBoard();
+        Invoke("StartBoardMatch", 0.001f);
+        Invoke("CanBoardMatchCheck", 0.001f);
     }
 
     void FixedUpdate()
@@ -49,6 +60,7 @@ public class Board : MonoBehaviour
     // 보드 생성
     public void InstantiateCellBoard()
     {
+        Debug.Log("보드 생성");
         for (int i = 0; i < board_Y; i++)
         {
             for (int j = 0; j < board_X; j++)
@@ -62,8 +74,64 @@ public class Board : MonoBehaviour
             cell_NextY -= 0.5f;
         }
     }
-
     
+    // 보드 생성 직후 보드에 매치 있는지 확인
+    public void StartBoardMatch()
+    {
+        Debug.Log("매치 있는지 확인");
+        bool isMatch = false;
+        for (int i = 0; i < enable_Cells.Count; i++)
+        {
+            if (MatchManager.instance.MatchCheck(enable_Cells[i], false))
+            {
+                isMatch = true;
+            }
+        }
+
+        // 매치되서 바꿨을 경우, 다시 매치되었는지 확인
+        if (isMatch)
+        {
+            StartBoardMatch();
+        }
+    }
+
+    // 매치할 수 있는 보드인지 확인
+    public void CanBoardMatchCheck()
+    {
+        Debug.Log("매치할 수 있는지 확인");
+        bool isCanMatch = true;
+
+        for (int i = 0; i < enable_Cells.Count; i++)
+        {
+            isCanMatch = MatchManager.instance.CanMatchCheck(enable_Cells[i]);
+            
+            // 보드에 매치되는 게 있으므로 더 확인할 필요 없음
+            if (isCanMatch)
+            {
+                Debug.Log("매치되는 거 있음");
+                return;
+            }
+        }
+
+        // 보드에 매치되는 게 없으므로 보드 다시 생성
+        if (!isCanMatch)
+        {
+            Debug.Log("매치되는 거 없음");
+            Reset();
+            for (int i = 0; i < enable_Cells.Count; i++)
+            {
+                Destroy(enable_Cells[i]);
+            }
+            for (int i = 0; i < disable_Cells.Count; i++)
+            {
+                Destroy(disable_Cells[i]);
+            }
+            InstantiateCellBoard();
+            StartBoardMatch();
+            CanBoardMatchCheck();
+        }
+    }
+
     // 빈 공간을 채울 셀 생성
     public void FillEmptyBoard(Vector3 empty_Position)
     {
