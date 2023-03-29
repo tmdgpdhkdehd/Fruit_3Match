@@ -16,7 +16,7 @@ public class Fruit : MonoBehaviour
     void OnEnable()
     {
         // 과일 이미지 랜덤 지정
-        int random = Random.Range(0, 10);
+        int random = Random.Range(0, fruit_Sprite.Count);
         fruit_SpriteRender.sprite = fruit_Sprite[random];
     }
 }

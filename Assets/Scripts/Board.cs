@@ -109,6 +109,7 @@ public class Board : MonoBehaviour
             if (isCanMatch)
             {
                 Debug.Log("매치되는 거 있음");
+                Debug.Log(enable_Cells[i].transform.position);
                 return;
             }
         }
@@ -118,15 +119,13 @@ public class Board : MonoBehaviour
         {
             Debug.Log("매치되는 거 없음");
             Reset();
-            for (int i = 0; i < enable_Cells.Count; i++)
+            for (int i = enable_Cells.Count - 1; i >= 0; i--)
             {
-                Destroy(enable_Cells[i]);
+                Debug.Log("enable Cell 이미지 바꿈");
+                GameObject obj = enable_Cells[i];
+                obj.SetActive(false);
+                obj.SetActive(true);
             }
-            for (int i = 0; i < disable_Cells.Count; i++)
-            {
-                Destroy(disable_Cells[i]);
-            }
-            InstantiateCellBoard();
             StartBoardMatch();
             CanBoardMatchCheck();
         }
