@@ -74,7 +74,7 @@ public class Board : MonoBehaviour
             cell_NextY -= 0.5f;
         }
     }
-    
+
     // 보드 생성 직후 보드에 매치 있는지 확인
     public void StartBoardMatch()
     {
@@ -104,7 +104,7 @@ public class Board : MonoBehaviour
         for (int i = 0; i < enable_Cells.Count; i++)
         {
             isCanMatch = MatchManager.instance.CanMatchCheck(enable_Cells[i]);
-            
+
             // 보드에 매치되는 게 있으므로 더 확인할 필요 없음
             if (isCanMatch)
             {

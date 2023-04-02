@@ -62,7 +62,7 @@ public class MatchManager : MonoBehaviour
         }
 
         // Å¬¸¯ ¶À
-        if (Input.GetMouseButtonUp(0)&& change_Cell != null && !isChange)
+        if (Input.GetMouseButtonUp(0) && change_Cell != null && !isChange)
         {
             other_Cell = GetChangeDirectionCell();
             isChange = false;
